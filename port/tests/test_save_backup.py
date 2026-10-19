@@ -54,6 +54,24 @@ class SaveBackupTest(unittest.TestCase):
         self.assertFalse(made[0].exists())
         self.assertFalse(made[1].exists())
 
+    def test_same_second_retention_keeps_latest_contents(self):
+        made = []
+        for i in range(15):
+            write(self.save, str(i))
+            made.append(save_backup.backup(self.user, now=self.clock))
+        kept = save_backup.list_backups(self.user)
+        self.assertEqual(kept, [p.name for p in reversed(made[-10:])])
+        relative = self.save.relative_to(self.user / 'savedata')
+        self.assertEqual((made[-1] / relative).read_text(), '14')
+
+    def test_same_second_with_one_backup_retained(self):
+        for i in range(5):
+            write(self.save, str(i))
+            made = save_backup.backup(self.user, now=self.clock, keep=1)
+            self.assertEqual(save_backup.list_backups(self.user), [made.name])
+            relative = self.save.relative_to(self.user / 'savedata')
+            self.assertEqual((made / relative).read_text(), str(i))
+
     def test_restore_backs_up_current_first(self):
         write(self.save, 'old')
         old = save_backup.backup(self.user, now=self.tick())

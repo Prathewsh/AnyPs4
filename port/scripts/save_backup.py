@@ -7,10 +7,16 @@ first backs up the current saves, so it can always be undone.
 """
 import datetime
 from pathlib import Path
+import re
 import shutil
 
 KEEP = 10
 STAMP = '%Y%m%d-%H%M%S'
+
+
+def _backup_order(name):
+    match = re.fullmatch(r'(\d{8}-\d{6})(?:-(\d+))?', name)
+    return (match[1], int(match[2] or 1)) if match else (name, 0)
 
 
 def backups_dir(user_dir):
@@ -20,7 +26,8 @@ def backups_dir(user_dir):
 def list_backups(user_dir):
     """Backup names, newest first."""
     root = backups_dir(user_dir)
-    return sorted((p.name for p in root.iterdir() if p.is_dir()), reverse=True) if root.is_dir() else []
+    return sorted((p.name for p in root.iterdir() if p.is_dir()),
+                  key=_backup_order, reverse=True) if root.is_dir() else []
 
 
 def _has_saves(savedata):
@@ -39,7 +46,12 @@ def _copy(user_dir, now):
     root = backups_dir(user_dir)
     root.mkdir(parents=True, exist_ok=True)
     base = (now or datetime.datetime.now()).strftime(STAMP)
-    target, n = root / base, 2
+    # Continue past existing suffixes even when pruning removed the base name.
+    latest = max((number for stamp, number in
+                  (_backup_order(p.name) for p in root.iterdir()) if stamp == base), default=0)
+    n = latest + 1
+    target = root / (base if n == 1 else f'{base}-{n}')
+    n += 1
     while target.exists():
         target, n = root / f'{base}-{n}', n + 1
     shutil.copytree(savedata, target)
@@ -69,4 +81,3 @@ def restore(user_dir, name, now=None):
     staging.rename(savedata)
     _prune(user_dir)
     return safety
-
