@@ -1,10 +1,10 @@
-# ps4_core — Shared Core for Native PS4 PC Ports
+#AnyPs4
 
 > **Local-only repository.** A shared compatibility layer and runtime core that allows PlayStation 4 games to run natively on PC without CPU emulation. Powers native ports including:
 >
 > - [gravityrush_pc](https://github.com/Prathewsh/gravityrush_pc) (_Gravity Rush 2_)
 
-Based on a fork of [HayatoG/ps4_core](https://github.com/HayatoG/ps4_core).
+Based on a fork of [HayatoG/ps4_core](https://github.com/HayatoG/ps4_core) and [shadps4](https://github.com/shadps4-emu/shadPS4).
 
 **No Sony proprietary files are included** (no `eboot.bin`, `prx`, `sprx`, `psarc`, `sfo`, or official artwork).
 
